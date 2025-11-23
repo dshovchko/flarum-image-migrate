@@ -1,0 +1,14 @@
+dshovchko-image-migrate:
+  admin:
+    allowed_origins_label: Allowed Origins
+    allowed_origins_help: "Comma-separated list of allowed domains (e.g., example.com, cdn.example.com). Images from other domains will be considered external."
+    scheduled_enabled_label: Enable Scheduled Checks
+    scheduled_enabled_help: Automatically check images on a regular schedule
+    scheduled_frequency_label: Check Frequency
+    frequency_daily: Daily
+    frequency_weekly: Weekly
+    frequency_monthly: Monthly
+    scheduled_chunk_label: Batch Size
+    scheduled_chunk_help: Number of discussions to process per batch
+    scheduled_emails_label: Email Recipients
+    scheduled_emails_help: Comma-separated email addresses to receive reports

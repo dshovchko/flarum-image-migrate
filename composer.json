@@ -1,0 +1,32 @@
+{
+    "name": "dshovchko/flarum-image-migrate",
+    "description": "Check and migrate external images in posts",
+    "type": "flarum-extension",
+    "keywords": ["flarum", "images", "migration"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Dmytro Shovchko",
+            "email": "d.shovchko@gmail.com"
+        }
+    ],
+    "require": {
+        "flarum/core": "^1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Dshovchko\\ImageMigrate\\": "src/"
+        }
+    },
+    "extra": {
+        "flarum-extension": {
+            "title": "Image Migrate",
+            "category": "feature",
+            "icon": {
+                "name": "fas fa-images",
+                "backgroundColor": "#e74c3c",
+                "color": "#fff"
+            }
+        }
+    }
+}
