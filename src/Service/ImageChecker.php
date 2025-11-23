@@ -129,16 +129,12 @@ class ImageChecker
             $origin = trim($origin);
             if (empty($origin)) continue;
             
-            // Remove protocol if present
-            $originTmp = preg_replace('#^https?://#i', '', $origin);
-            if ($originTmp === null) continue;
-            $origin = strtolower($originTmp);
+            // Remove protocol if present and lowercase
+            $origin = strtolower(preg_replace('#^https?://#i', '', $origin));
             
             // Remove www. prefix from both for comparison
             $hostClean = preg_replace('/^www\./', '', $host);
-            if ($hostClean === null) continue;
             $originClean = preg_replace('/^www\./', '', $origin);
-            if ($originClean === null) continue;
             
             // Check exact match or subdomain match
             if ($hostClean === $originClean || str_ends_with($hostClean, '.' . $originClean)) {
