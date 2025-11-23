@@ -27,7 +27,6 @@ class CheckImagesCommand extends AbstractCommand
              ->setDescription('Check posts for external images')
              ->addOption('discussion', null, InputOption::VALUE_REQUIRED, 'Process only discussion with the specified ID')
              ->addOption('all', null, InputOption::VALUE_NONE, 'Process all discussions')
-             ->addOption('chunk', null, InputOption::VALUE_REQUIRED, 'How many discussions to process per batch when using --all', 100)
              ->addOption('post', null, InputOption::VALUE_REQUIRED, 'Process only comment post with the specified ID')
              ->addOption('mailto', null, InputOption::VALUE_REQUIRED, 'Send the checking log to the specified email');
     }

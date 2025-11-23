@@ -50,14 +50,14 @@ php flarum image-migrate:check --discussion=123
 # Check a specific post
 php flarum image-migrate:check --post=456
 
-# Scan all discussions in batches of 250
-php flarum image-migrate:check --all --chunk=250
+# Scan all discussions
+php flarum image-migrate:check --all
 
 # Email the report
 php flarum image-migrate:check --all --mailto=admin@example.com
 
 # Combine options
-php flarum image-migrate:check --all --chunk=100 --mailto=admin@example.com,moderator@example.com
+php flarum image-migrate:check --all --mailto=admin@example.com,moderator@example.com
 ```
 
 > ℹ️  The command requires one of `--discussion=<id>`, `--post=<id>`, or `--all`.

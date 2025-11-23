@@ -11,12 +11,7 @@ return [
 
     new Extend\Locales(__DIR__.'/locale'),
 
-    (new Extend\Settings())
-        ->serializeToForum('dshovchko-image-migrate.allowed_origins', 'dshovchko-image-migrate.allowed_origins')
-        ->serializeToForum('dshovchko-image-migrate.scheduled_enabled', 'dshovchko-image-migrate.scheduled_enabled', 'boolval')
-        ->serializeToForum('dshovchko-image-migrate.scheduled_frequency', 'dshovchko-image-migrate.scheduled_frequency')
-        ->serializeToForum('dshovchko-image-migrate.scheduled_chunk', 'dshovchko-image-migrate.scheduled_chunk', 'intval')
-        ->serializeToForum('dshovchko-image-migrate.scheduled_emails', 'dshovchko-image-migrate.scheduled_emails'),
+
 
     (new Extend\Console())
         ->command(Console\CheckImagesCommand::class)
