@@ -50,7 +50,7 @@ class CheckImagesCommand extends AbstractCommand
         }
     }
 
-    protected function checkPost($postId, $mailto)
+    protected function checkPost(int $postId, ?string $mailto): void
     {
         $this->info("Checking post #{$postId}...");
         
@@ -64,7 +64,7 @@ class CheckImagesCommand extends AbstractCommand
         $this->displayResults($externalImages, $mailto);
     }
 
-    protected function checkDiscussion($discussionId, $mailto)
+    protected function checkDiscussion(int $discussionId, ?string $mailto): void
     {
         $this->info("Checking discussion #{$discussionId}...");
         
@@ -78,7 +78,7 @@ class CheckImagesCommand extends AbstractCommand
         $this->displayResults($externalImages, $mailto);
     }
 
-    protected function checkAll($mailto)
+    protected function checkAll(?string $mailto): void
     {
         $this->info('Checking all posts for external images...');
         
@@ -86,7 +86,7 @@ class CheckImagesCommand extends AbstractCommand
         $this->displayResults($externalImages, $mailto);
     }
 
-    protected function displayResults($externalImages, $mailto)
+    protected function displayResults(array $externalImages, ?string $mailto): void
     {
         $count = count($externalImages);
         
