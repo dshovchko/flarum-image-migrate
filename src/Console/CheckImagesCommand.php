@@ -45,7 +45,7 @@ class CheckImagesCommand extends AbstractCommand
         } elseif ($all) {
             $this->checkAll($mailto);
         } else {
-            $this->error('Please specify --discussion, --post, or --all option');
+            $this->error('Please specify one of: --discussion=<id>, --post=<id>, or --all');
             return 1;
         }
     }

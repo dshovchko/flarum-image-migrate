@@ -59,7 +59,7 @@ php flarum image-migrate:check --all --mailto=admin@example.com
 php flarum image-migrate:check --all --mailto=admin@example.com,moderator@example.com
 ```
 
-> ℹ️  The command requires one of `--discussion=<id>`, `--post=<id>`, or `--all`.
+> ℹ️ The command requires one of `--discussion=<id>`, `--post=<id>`, or `--all`.
 
 ### Email Reports
 

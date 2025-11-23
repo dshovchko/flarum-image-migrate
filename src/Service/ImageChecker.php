@@ -130,7 +130,7 @@ class ImageChecker
             if (empty($origin)) continue;
             
             // Remove protocol if present and lowercase
-            $origin = strtolower(preg_replace('#^https?://#i', '', $origin));
+            $origin = strtolower(preg_replace('/^https?:\/\//i', '', $origin));
             
             // Remove www. prefix from both for comparison
             $hostClean = preg_replace('/^www\./', '', $host);
