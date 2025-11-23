@@ -8,7 +8,5 @@ dshovchko-image-migrate:
     frequency_daily: Щодня
     frequency_weekly: Щотижня
     frequency_monthly: Щомісяця
-    scheduled_chunk_label: Розмір батчу
-    scheduled_chunk_help: Кількість дискусій для обробки за один раз
     scheduled_emails_label: Email отримувачі
     scheduled_emails_help: Email адреси через кому для отримання звітів

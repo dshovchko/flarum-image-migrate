@@ -28,14 +28,6 @@ app.initializers.add('dshovchko/flarum-image-migrate', () => {
       default: 'weekly',
     })
     .registerSetting({
-      setting: 'dshovchko-image-migrate.scheduled_chunk',
-      type: 'number',
-      label: app.translator.trans('dshovchko-image-migrate.admin.scheduled_chunk_label'),
-      help: app.translator.trans('dshovchko-image-migrate.admin.scheduled_chunk_help'),
-      min: 1,
-      default: 100,
-    })
-    .registerSetting({
       setting: 'dshovchko-image-migrate.scheduled_emails',
       type: 'text',
       label: app.translator.trans('dshovchko-image-migrate.admin.scheduled_emails_label'),

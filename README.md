@@ -31,8 +31,7 @@ Configure the extension via the admin panel:
 2. Set **Allowed Origins** (comma-separated domains, e.g., `example.com, cdn.example.com`)
 3. Enable **Scheduled Checks** (optional)
 4. Set **Check Frequency** (daily/weekly/monthly)
-5. Set **Batch Size** (number of discussions per run)
-6. Add **Email Recipients** (comma-separated)
+5. Add **Email Recipients** (comma-separated)
 
 > ⚠️ Scheduled checks require Flarum scheduler to be configured. Add to your crontab:
 > ```bash
