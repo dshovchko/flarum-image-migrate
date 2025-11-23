@@ -24,7 +24,7 @@ class CheckDiscussionController implements RequestHandlerInterface
         $actor = RequestUtil::getActor($request);
         $actor->assertAdmin();
 
-        $id = array_get($request->getQueryParams(), 'id');
+        $id = $request->getAttribute('id');
         $discussion = Discussion::findOrFail($id);
 
         $externalImages = $this->checker->checkDiscussion($discussion);

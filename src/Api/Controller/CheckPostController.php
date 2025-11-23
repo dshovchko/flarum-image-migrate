@@ -24,7 +24,7 @@ class CheckPostController implements RequestHandlerInterface
         $actor = RequestUtil::getActor($request);
         $actor->assertAdmin();
 
-        $id = array_get($request->getQueryParams(), 'id');
+        $id = $request->getAttribute('id');
         $post = Post::findOrFail($id);
 
         $externalImages = $this->checker->checkPost($post);

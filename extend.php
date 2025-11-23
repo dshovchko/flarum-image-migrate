@@ -23,7 +23,7 @@ return [
         ->schedule(Console\CheckImagesCommand::class, Console\CheckImagesSchedule::class),
 
     (new Extend\Routes('api'))
-        ->post('/image-migrate/check', 'image-migrate.check', Api\Controller\CheckImagesController::class)
-        ->post('/image-migrate/check-discussion/{id}', 'image-migrate.check-discussion', Api\Controller\CheckDiscussionController::class)
-        ->post('/image-migrate/check-post/{id}', 'image-migrate.check-post', Api\Controller\CheckPostController::class),
+        ->get('/image-migrate/check', 'image-migrate.check', Api\Controller\CheckImagesController::class)
+        ->get('/image-migrate/check-discussion/{id}', 'image-migrate.check-discussion', Api\Controller\CheckDiscussionController::class)
+        ->get('/image-migrate/check-post/{id}', 'image-migrate.check-post', Api\Controller\CheckPostController::class),
 ];

@@ -18,8 +18,11 @@ class ImageChecker
 
     public function checkAllPosts(): array
     {
-        $posts = Post::where('type', 'comment')->get();
-        return $this->checkPosts($posts);
+        $externalImages = [];
+        Post::where('type', 'comment')->chunk(1000, function ($posts) use (&$externalImages) {
+            $externalImages = array_merge($externalImages, $this->checkPosts($posts));
+        });
+        return $externalImages;
     }
 
     public function checkDiscussion(Discussion $discussion): array
@@ -127,7 +130,7 @@ class ImageChecker
             if (empty($origin)) continue;
             
             // Remove protocol if present
-            $origin = preg_replace('#^https?://#', '', $origin);
+            $origin = preg_replace('#^https?://#i', '', $origin);
             $origin = strtolower($origin);
             
             // Remove www. prefix from both for comparison
