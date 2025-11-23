@@ -1,0 +1,12 @@
+dshovchko-image-migrate:
+  admin:
+    allowed_origins_label: Дозволені домени
+    allowed_origins_help: "Список дозволених доменів через кому (наприклад, example.com, cdn.example.com). Зображення з інших доменів вважатимуться зовнішніми."
+    scheduled_enabled_label: Увімкнути автоматичні перевірки
+    scheduled_enabled_help: Автоматично перевіряти зображення за розкладом
+    scheduled_frequency_label: Частота перевірок
+    frequency_daily: Щодня
+    frequency_weekly: Щотижня
+    frequency_monthly: Щомісяця
+    scheduled_emails_label: Email отримувачі
+    scheduled_emails_help: Email адреси через кому для отримання звітів

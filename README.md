@@ -1,0 +1,126 @@
+# Flarum Image Migrate
+
+[![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/dshovchko/flarum-image-migrate/blob/main/LICENSE)
+[![Latest Stable Version](https://img.shields.io/packagist/v/dshovchko/flarum-image-migrate.svg)](https://packagist.org/packages/dshovchko/flarum-image-migrate)
+[![Total Downloads](https://img.shields.io/packagist/dt/dshovchko/flarum-image-migrate.svg)](https://packagist.org/packages/dshovchko/flarum-image-migrate)
+
+A Flarum extension that detects external images in posts and helps migrate them to your own storage.
+
+## Features
+
+- 🔍 Detects external images from non-whitelisted domains
+- 📧 Email reports with detailed statistics
+- ⏰ Scheduled automatic checks (daily/weekly/monthly)
+- 🎯 Flexible checking: all posts, specific discussion, or single post
+- ⚙️ Configurable allowed domains
+- 📊 Grouped reporting by discussions and posts
+
+## Installation
+
+```bash
+composer require dshovchko/flarum-image-migrate
+```
+
+## Usage
+
+### Configuration
+
+Configure the extension via the admin panel:
+
+1. Go to **Admin → Extensions → Image Migrate**
+2. Set **Allowed Origins** (comma-separated domains, e.g., `example.com, cdn.example.com`)
+3. Enable **Scheduled Checks** (optional)
+4. Set **Check Frequency** (daily/weekly/monthly)
+5. Add **Email Recipients** (comma-separated)
+
+> ⚠️ Scheduled checks require Flarum scheduler to be configured. Add to your crontab:
+> ```bash
+> * * * * * cd /path/to/flarum && php flarum schedule:run >> /dev/null 2>&1
+> ```
+
+### Manual Console Command
+
+Check for external images using the `image-migrate:check` console command:
+
+```bash
+# Check a single discussion
+php flarum image-migrate:check --discussion=123
+
+# Check a specific post
+php flarum image-migrate:check --post=456
+
+# Scan all discussions
+php flarum image-migrate:check --all
+
+# Email the report
+php flarum image-migrate:check --all --mailto=admin@example.com
+
+# Combine options
+php flarum image-migrate:check --all --mailto=admin@example.com,moderator@example.com
+```
+
+> ℹ️ The command requires one of `--discussion=<id>`, `--post=<id>`, or `--all`.
+
+### Email Reports
+
+Reports include:
+- Total number of external images found
+- Number of discussions with issues
+- Detailed breakdown by discussion and post
+- Direct links to affected discussions and posts
+- List of external image URLs
+
+Example report format:
+```
+External Images Report
+
+Total external images: 56
+⚠️ Discussions with issues: 8
+==================================================
+
+⚠️ Discussion 8
+https://example.com/d/8
+ external images in posts (10)
+ posts: 14 15 16 17 18 19
+  Post #14: 3 image(s)
+    https://example.com/d/8/1
+    - https://external-cdn.com/image1.jpg
+    - https://external-cdn.com/image2.jpg
+```
+
+## How It Works
+
+1. The extension scans post content for `<img>` tags
+2. Extracts image URLs from the `src` attribute
+3. Compares image domains against your allowed origins list
+4. Reports any images hosted on external domains
+5. Groups results by discussion and post for easy review
+
+## Allowed Origins
+
+Domains in the allowed origins list are considered "internal" and won't be flagged:
+- Exact domain match: `example.com` matches `example.com`
+- Subdomain match: `example.com` matches `cdn.example.com`, `images.example.com`
+- Case-insensitive matching
+- Automatic `www.` prefix handling
+
+## Requirements
+
+- Flarum ^1.0
+- PHP 7.4+
+
+## Future Features
+
+- Automatic image migration to S3/local storage
+- Batch image replacement in posts
+- Integration with external image conversion services
+
+## Links
+
+- [GitHub Repository](https://github.com/dshovchko/flarum-image-migrate)
+- [Packagist](https://packagist.org/packages/dshovchko/flarum-image-migrate)
+- [Flarum Community](https://discuss.flarum.org)
+
+## License
+
+[MIT](https://github.com/dshovchko/flarum-image-migrate/blob/main/LICENSE)
