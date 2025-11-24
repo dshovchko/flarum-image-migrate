@@ -15,7 +15,13 @@ return [
 
     (new Extend\Console())
         ->command(Console\CheckImagesCommand::class)
-        ->schedule(Console\CheckImagesCommand::class, Console\CheckImagesSchedule::class),
+        ->command(Console\ScheduledCheckImagesCommand::class)
+        ->schedule(Console\ScheduledCheckImagesCommand::class, function ($event) {
+            $command = resolve(Console\ScheduledCheckImagesCommand::class);
+            if ($command->isEnabled()) {
+                $command->schedule($event);
+            }
+        }),
 
     (new Extend\Routes('api'))
         ->get('/image-migrate/check', 'image-migrate.check', Api\Controller\CheckImagesController::class)

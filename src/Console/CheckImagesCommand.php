@@ -28,15 +28,22 @@ class CheckImagesCommand extends AbstractCommand
              ->addOption('discussion', null, InputOption::VALUE_REQUIRED, 'Process only discussion with the specified ID')
              ->addOption('all', null, InputOption::VALUE_NONE, 'Process all discussions')
              ->addOption('post', null, InputOption::VALUE_REQUIRED, 'Process only comment post with the specified ID')
-             ->addOption('mailto', null, InputOption::VALUE_REQUIRED, 'Send the checking log to the specified email');
+             ->addOption('mailto', null, InputOption::VALUE_REQUIRED, 'Send the checking log to the specified email')
+             ->addOption('fix', null, InputOption::VALUE_NONE, 'Migrate external images to local storage (TODO: will be implemented in next minor version)');
     }
 
-    protected function fire()
+    protected function process()
     {
         $discussionId = $this->input->getOption('discussion');
         $postId = $this->input->getOption('post');
         $all = $this->input->getOption('all');
         $mailto = $this->input->getOption('mailto');
+        $fix = $this->input->getOption('fix');
+
+        // TODO: Implement --fix option to migrate external images to local storage
+        if ($fix) {
+            $this->info('The --fix option is not yet implemented. It will be available in the next minor version.');
+        }
 
         if ($postId) {
             $this->checkPost($postId, $mailto);
@@ -48,6 +55,11 @@ class CheckImagesCommand extends AbstractCommand
             $this->error('Please specify one of: --discussion=<id>, --post=<id>, or --all');
             return 1;
         }
+    }
+
+    protected function fire()
+    {
+        $this->process();
     }
 
     protected function checkPost(int $postId, ?string $mailto): void
@@ -131,6 +143,9 @@ class CheckImagesCommand extends AbstractCommand
             }
         } else {
             $this->info('No external images found');
+            if ($mailto) {
+                $this->mailer->sendReport([], $mailto);
+            }
         }
     }
 }
