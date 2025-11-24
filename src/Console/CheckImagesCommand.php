@@ -42,8 +42,8 @@ class CheckImagesCommand extends AbstractCommand
 
         // TODO: Implement --fix option to migrate external images to local storage
         if ($fix) {
-            $this->info('The --fix option is not yet implemented. It will be available in the next minor version.');
-            return 1;
+            $this->error('The --fix option is not yet implemented. It will be available in the next minor version.');
+            return;
         }
 
         if ($postId) {
@@ -139,9 +139,6 @@ class CheckImagesCommand extends AbstractCommand
             }
         } else {
             $this->info('No external images found');
-            if ($mailto) {
-                $this->mailer->sendReport([], $mailto);
-            }
         }
     }
 }
