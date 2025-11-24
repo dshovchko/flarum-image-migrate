@@ -28,7 +28,8 @@ class CheckImagesCommand extends AbstractCommand
              ->addOption('discussion', null, InputOption::VALUE_REQUIRED, 'Process only discussion with the specified ID')
              ->addOption('all', null, InputOption::VALUE_NONE, 'Process all discussions')
              ->addOption('post', null, InputOption::VALUE_REQUIRED, 'Process only comment post with the specified ID')
-             ->addOption('mailto', null, InputOption::VALUE_REQUIRED, 'Send the checking log to the specified email');
+             ->addOption('mailto', null, InputOption::VALUE_REQUIRED, 'Send the checking log to the specified email')
+             ->addOption('fix', null, InputOption::VALUE_NONE, 'Migrate external images to local storage (TODO: will be implemented in next minor version)');
     }
 
     protected function fire()
@@ -37,6 +38,13 @@ class CheckImagesCommand extends AbstractCommand
         $postId = $this->input->getOption('post');
         $all = $this->input->getOption('all');
         $mailto = $this->input->getOption('mailto');
+        $fix = $this->input->getOption('fix');
+
+        // TODO: Implement --fix option to migrate external images to local storage
+        if ($fix) {
+            $this->error('The --fix option is not yet implemented. It will be available in the next minor version.');
+            return;
+        }
 
         if ($postId) {
             $this->checkPost($postId, $mailto);
