@@ -79,8 +79,7 @@ class RemoteImageDownloader
                     @unlink($tempFile);
                     throw new SnapGrabException('Failed to read from the remote stream.');
                 }
-
-                continue;
+                break;
             }
 
             $written = fwrite($handle, $chunk);

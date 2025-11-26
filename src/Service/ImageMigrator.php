@@ -55,7 +55,7 @@ class ImageMigrator
 
                 $response = $this->client->upload($downloaded->path, $sourceUrl, $format, $options);
                 $newUrl = $response['url'];
-                $content = $this->replaceFirst($post, $content, $image['image_url'], $newUrl);
+                $content = $this->replaceImageSrc($post, $content, $image['image_url'], $newUrl);
 
                 $changes[] = [
                     'original_url' => $image['image_url'],
@@ -104,19 +104,23 @@ class ImageMigrator
         };
     }
 
-    private function replaceFirst(CommentPost $post, string $content, string $search, string $replacement): string
+    private function replaceImageSrc(CommentPost $post, string $content, string $search, string $replacement): string
     {
-        $pos = strpos($content, $search);
+        $pattern = '/(<img[^>]*\s+src=["\"])'.preg_quote($search, '/').'(["\"][^>]*>)/i';
+        $count = 0;
+        $result = preg_replace_callback($pattern, function (array $matches) use ($replacement) {
+            return $matches[1].$replacement.$matches[2];
+        }, $content, 1, $count);
 
-        if ($pos === false) {
+        if ($result === null || $count === 0) {
             throw new SnapGrabException(sprintf(
-                'Original image URL (%s) was not found inside post #%d.',
+                'Original image URL (%s) was not found inside an <img> tag in post #%d.',
                 $search,
                 $post->id ?? 0
             ));
         }
 
-        return substr($content, 0, $pos).$replacement.substr($content, $pos + strlen($search));
+        return $result;
     }
 
     private function buildSourceUrl(?Discussion $discussion, ?int $postNumber): string
