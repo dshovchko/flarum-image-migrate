@@ -9,11 +9,13 @@ A Flarum extension that detects external images in posts and helps migrate them 
 ## Features
 
 - 🔍 Detects external images from non-whitelisted domains
-- 📧 Email reports with detailed statistics
+- 🛠 Migration mode (`--fix`) that downloads external files, pushes them to your configured backend, and rewrites post content automatically
+- 📧 Email reports with detailed statistics and optional on-demand emails
 - ⏰ Scheduled automatic checks (daily/weekly/monthly)
 - 🎯 Flexible checking: all posts, specific discussion, or single post
+- 🔑 Admin-configurable backend credentials with built-in health-check
+- 📊 Grouped reporting by discussions and posts, plus a persistent audit log for migrated URLs
 - ⚙️ Configurable allowed domains
-- 📊 Grouped reporting by discussions and posts
 
 ## Installation
 
@@ -29,9 +31,12 @@ Configure the extension via the admin panel:
 
 1. Go to **Admin → Extensions → Image Migrate**
 2. Set **Allowed Origins** (comma-separated domains, e.g., `example.com, cdn.example.com`)
-3. Enable **Scheduled Checks** (optional)
-4. Set **Check Frequency** (daily/weekly/monthly)
-5. Add **Email Recipients** (comma-separated)
+3. Provide the backend connection details: **Backend Base URL**, **Backend Environment** (production/sandbox/etc.), and **Backend API Key**
+4. Enable **Scheduled Checks** (optional)
+5. Set **Check Frequency** (daily/weekly/monthly)
+6. Add **Email Recipients** (comma-separated)
+
+Saving the settings will ping the backend health endpoint; the form cannot be saved while the backend is unreachable. After upgrading to v1.1.0, run `php flarum migrate` once to create the migration log table.
 
 > ⚠️ Scheduled checks require Flarum scheduler to be configured. Add to your crontab:
 > ```bash
@@ -52,6 +57,9 @@ php flarum image-migrate:check --post=456
 # Scan all discussions
 php flarum image-migrate:check --all
 
+# Run the scan and migrate matching images immediately
+php flarum image-migrate:check --all --fix
+
 # Email the report
 php flarum image-migrate:check --all --mailto=admin@example.com
 
@@ -60,6 +68,19 @@ php flarum image-migrate:check --all --mailto=admin@example.com,moderator@exampl
 ```
 
 > ℹ️ The command requires one of `--discussion=<id>`, `--post=<id>`, or `--all`.
+> 🔐 When using `--fix`, the backend settings must be valid and reachable.
+
+### Migration Mode (`--fix`)
+
+When `--fix` is present, the command will:
+
+1. Run the same detection logic as the regular scan
+2. Download each external image to a temporary file
+3. Upload it to the configured backend using the selected environment
+4. Replace the original `src` attribute in the post with the new URL
+5. Store an entry in `dshovchko_image_migrate` for auditing (discussion/post IDs, author, old/new URLs)
+
+The command aborts on the first failed upload so that no discussion is partially migrated. Consider running without `--fix` first to review the report, then re-run with `--fix` for the same filters.
 
 ### Email Reports
 
@@ -111,9 +132,9 @@ Domains in the allowed origins list are considered "internal" and won't be flagg
 
 ## Future Features
 
-- Automatic image migration to S3/local storage
-- Batch image replacement in posts
-- Integration with external image conversion services
+- Automatic retries/backoff for flaky external hosts
+- Extended reporting in the admin panel
+- Additional image transformation presets
 
 ## Links
 

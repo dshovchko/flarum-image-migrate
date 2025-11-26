@@ -1,5 +1,14 @@
 dshovchko-image-migrate:
   admin:
+    backend_section_heading: Налаштування Backend API
+    backend_section_help: Вкажіть параметри доступу до сервісу SnapGrab, через який відбувається міграція зображень.
+    backend_base_url_label: Базова адреса сервісу
+    backend_base_url_help: Повна URL-адреса SnapGrab (наприклад, https://snapgrab.example.com).
+    backend_env_label: Робоче середовище
+    backend_env_production: Production (бойове)
+    backend_env_integration: Integration (тестове)
+    backend_api_key_label: API Key
+    backend_api_key_help: Ключ, який передається в заголовку "x-snapgrab-key" для автентифікації.
     allowed_origins_label: Дозволені домени
     allowed_origins_help: "Список дозволених доменів через кому (наприклад, example.com, cdn.example.com). Зображення з інших доменів вважатимуться зовнішніми."
     scheduled_enabled_label: Увімкнути автоматичні перевірки

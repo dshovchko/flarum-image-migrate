@@ -3,6 +3,36 @@ import app from 'flarum/admin/app';
 app.initializers.add('dshovchko/flarum-image-migrate', () => {
   app.extensionData
     .for('dshovchko-image-migrate')
+    .registerSetting(() =>
+      m('div', { className: 'Form-group' }, [
+        m('label', app.translator.trans('dshovchko-image-migrate.admin.backend_section_heading')),
+        m('p', app.translator.trans('dshovchko-image-migrate.admin.backend_section_help')),
+      ])
+    )
+    .registerSetting({
+      setting: 'dshovchko-image-migrate.snapgrab_base_url',
+      type: 'text',
+      label: app.translator.trans('dshovchko-image-migrate.admin.backend_base_url_label'),
+      help: app.translator.trans('dshovchko-image-migrate.admin.backend_base_url_help'),
+      placeholder: 'https://api.example.com',
+    })
+    .registerSetting({
+      setting: 'dshovchko-image-migrate.snapgrab_env',
+      type: 'select',
+      label: app.translator.trans('dshovchko-image-migrate.admin.backend_env_label'),
+      options: {
+        production: app.translator.trans('dshovchko-image-migrate.admin.backend_env_production'),
+        integration: app.translator.trans('dshovchko-image-migrate.admin.backend_env_integration'),
+      },
+      default: 'production',
+    })
+    .registerSetting({
+      setting: 'dshovchko-image-migrate.snapgrab_api_key',
+      type: 'text',
+      label: app.translator.trans('dshovchko-image-migrate.admin.backend_api_key_label'),
+      help: app.translator.trans('dshovchko-image-migrate.admin.backend_api_key_help'),
+      placeholder: 'snapgrab-prod-key',
+    })
     .registerSetting({
       setting: 'dshovchko-image-migrate.allowed_origins',
       type: 'text',

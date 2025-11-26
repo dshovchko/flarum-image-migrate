@@ -3,22 +3,29 @@
 namespace Dshovchko\ImageMigrate\Console;
 
 use Dshovchko\ImageMigrate\Service\ImageChecker;
+use Dshovchko\ImageMigrate\Service\ImageMigrator;
 use Dshovchko\ImageMigrate\Service\ReportMailer;
+use Dshovchko\ImageMigrate\SnapGrab\SnapGrabClient;
+use Dshovchko\ImageMigrate\SnapGrab\SnapGrabException;
 use Flarum\Console\AbstractCommand;
 use Flarum\Discussion\Discussion;
-use Flarum\Post\Post;
+use Flarum\Post\CommentPost;
 use Symfony\Component\Console\Input\InputOption;
 
 class CheckImagesCommand extends AbstractCommand
 {
     protected $checker;
     protected $mailer;
+    protected $migrator;
+    protected $snapGrabClient;
 
-    public function __construct(ImageChecker $checker, ReportMailer $mailer)
+    public function __construct(ImageChecker $checker, ReportMailer $mailer, ImageMigrator $migrator, SnapGrabClient $snapGrabClient)
     {
         parent::__construct();
         $this->checker = $checker;
         $this->mailer = $mailer;
+        $this->migrator = $migrator;
+        $this->snapGrabClient = $snapGrabClient;
     }
 
     protected function configure()
@@ -29,7 +36,7 @@ class CheckImagesCommand extends AbstractCommand
              ->addOption('all', null, InputOption::VALUE_NONE, 'Process all discussions')
              ->addOption('post', null, InputOption::VALUE_REQUIRED, 'Process only comment post with the specified ID')
              ->addOption('mailto', null, InputOption::VALUE_REQUIRED, 'Send the checking log to the specified email')
-             ->addOption('fix', null, InputOption::VALUE_NONE, 'Migrate external images to local storage (TODO: will be implemented in next minor version)');
+             ->addOption('fix', null, InputOption::VALUE_NONE, 'Migrate external images to SnapGrab storage');
     }
 
     protected function fire()
@@ -40,58 +47,64 @@ class CheckImagesCommand extends AbstractCommand
         $mailto = $this->input->getOption('mailto');
         $fix = $this->input->getOption('fix');
 
-        // TODO: Implement --fix option to migrate external images to local storage
-        if ($fix) {
-            $this->error('The --fix option is not yet implemented. It will be available in the next minor version.');
-            return;
-        }
-
-        if ($postId) {
-            $this->checkPost($postId, $mailto);
-        } elseif ($discussionId) {
-            $this->checkDiscussion($discussionId, $mailto);
-        } elseif ($all) {
-            $this->checkAll($mailto);
-        } else {
+        if (!$postId && !$discussionId && !$all) {
             $this->error('Please specify one of: --discussion=<id>, --post=<id>, or --all');
             return 1;
         }
-    }
 
-    protected function checkPost(int $postId, ?string $mailto): void
-    {
-        $this->info("Checking post #{$postId}...");
-        
-        $post = Post::find($postId);
-        if (!$post) {
-            $this->error("Post #{$postId} not found");
-            return;
+        if (($postId && $all) || ($discussionId && $all) || ($postId && $discussionId)) {
+            $this->error('Please specify a single scope: --discussion, --post, or --all.');
+            return 1;
         }
 
-        $externalImages = $this->checker->checkPost($post);
+        $externalImages = [];
+
+        if ($postId) {
+            $externalImages = $this->checkPost((int) $postId);
+        } elseif ($discussionId) {
+            $externalImages = $this->checkDiscussion((int) $discussionId);
+        } elseif ($all) {
+            $externalImages = $this->checkAll();
+        }
+
+        if ($fix) {
+            return $this->runFix($externalImages);
+        }
+
         $this->displayResults($externalImages, $mailto);
     }
 
-    protected function checkDiscussion(int $discussionId, ?string $mailto): void
+    protected function checkPost(int $postId): array
+    {
+        $this->info("Checking post #{$postId}...");
+        
+        $post = CommentPost::find($postId);
+        if (!$post) {
+            $this->error("Post #{$postId} not found");
+            return [];
+        }
+
+        return $this->checker->checkPost($post);
+    }
+
+    protected function checkDiscussion(int $discussionId): array
     {
         $this->info("Checking discussion #{$discussionId}...");
         
         $discussion = Discussion::find($discussionId);
         if (!$discussion) {
             $this->error("Discussion #{$discussionId} not found");
-            return;
+            return [];
         }
 
-        $externalImages = $this->checker->checkDiscussion($discussion);
-        $this->displayResults($externalImages, $mailto);
+        return $this->checker->checkDiscussion($discussion);
     }
 
-    protected function checkAll(?string $mailto): void
+    protected function checkAll(): array
     {
         $this->info('Checking all posts for external images...');
         
-        $externalImages = $this->checker->checkAllPosts();
-        $this->displayResults($externalImages, $mailto);
+        return $this->checker->checkAllPosts();
     }
 
     protected function displayResults(array $externalImages, ?string $mailto): void
@@ -140,5 +153,69 @@ class CheckImagesCommand extends AbstractCommand
         } else {
             $this->info('No external images found');
         }
+    }
+
+    protected function runFix(array $externalImages): int
+    {
+        if (empty($externalImages)) {
+            $this->info('No external images found. Nothing to migrate.');
+            return 0;
+        }
+
+        try {
+            $this->snapGrabClient->ensureConfigured();
+            $this->snapGrabClient->healthCheck();
+        } catch (SnapGrabException $e) {
+            $this->error('Health check failed: '.$e->getMessage());
+            return 1;
+        }
+
+        $grouped = [];
+        foreach ($externalImages as $image) {
+            $grouped[$image['post_id']][] = $image;
+        }
+
+        $totalPosts = count($grouped);
+        $totalImages = count($externalImages);
+        $this->info(sprintf('Migrating %d image(s) across %d post(s)...', $totalImages, $totalPosts));
+
+        $processedPosts = 0;
+
+        foreach ($grouped as $postId => $images) {
+            $currentIndex = $processedPosts + 1;
+            $post = CommentPost::find($postId);
+            if (!$post) {
+                $this->error(sprintf(
+                    'Post #%d no longer exists (processing post %d of %d). Migration stopped after completing %d post(s).',
+                    $postId,
+                    $currentIndex,
+                    $totalPosts,
+                    $processedPosts
+                ));
+                return 1;
+            }
+
+            $this->info(sprintf('  • Post #%d (%d image%s)', $postId, count($images), count($images) === 1 ? '' : 's'));
+
+            try {
+                $this->migrator->migrate($post, $images);
+            } catch (SnapGrabException $e) {
+                $this->error(sprintf(
+                    'Migration failed while processing post #%d (%d of %d). Completed %d post(s) before the error. %s',
+                    $postId,
+                    $currentIndex,
+                    $totalPosts,
+                    $processedPosts,
+                    $e->getMessage()
+                ));
+                return 1;
+            }
+
+            $processedPosts++;
+        }
+
+        $this->info('Migration completed successfully.');
+
+        return 0;
     }
 }

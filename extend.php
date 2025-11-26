@@ -2,7 +2,9 @@
 
 namespace Dshovchko\ImageMigrate;
 
+use Dshovchko\ImageMigrate\Listener\ValidateBackendSettings;
 use Flarum\Extend;
+use Flarum\Settings\Event\Saving;
 
 return [
     (new Extend\Frontend('admin'))
@@ -27,4 +29,7 @@ return [
         ->get('/image-migrate/check', 'image-migrate.check', Api\Controller\CheckImagesController::class)
         ->get('/image-migrate/check-discussion/{id}', 'image-migrate.check-discussion', Api\Controller\CheckDiscussionController::class)
         ->get('/image-migrate/check-post/{id}', 'image-migrate.check-post', Api\Controller\CheckPostController::class),
+
+    (new Extend\Event())
+        ->listen(Saving::class, ValidateBackendSettings::class),
 ];
