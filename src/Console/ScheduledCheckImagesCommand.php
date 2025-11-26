@@ -3,7 +3,9 @@
 namespace Dshovchko\ImageMigrate\Console;
 
 use Dshovchko\ImageMigrate\Service\ImageChecker;
+use Dshovchko\ImageMigrate\Service\ImageMigrator;
 use Dshovchko\ImageMigrate\Service\ReportMailer;
+use Dshovchko\ImageMigrate\SnapGrab\SnapGrabClient;
 use Flarum\Settings\SettingsRepositoryInterface;
 use Illuminate\Console\Scheduling\Event;
 
@@ -11,9 +13,9 @@ class ScheduledCheckImagesCommand extends CheckImagesCommand
 {
     protected $settings;
 
-    public function __construct(ImageChecker $checker, ReportMailer $mailer, SettingsRepositoryInterface $settings)
+    public function __construct(ImageChecker $checker, ReportMailer $mailer, ImageMigrator $migrator, SnapGrabClient $snapGrabClient, SettingsRepositoryInterface $settings)
     {
-        parent::__construct($checker, $mailer);
+        parent::__construct($checker, $mailer, $migrator, $snapGrabClient);
         $this->settings = $settings;
     }
 
