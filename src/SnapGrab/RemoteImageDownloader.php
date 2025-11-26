@@ -66,19 +66,13 @@ class RemoteImageDownloader
         $bytesWritten = 0;
         while (!$stream->eof()) {
             $chunk = $stream->read(self::CHUNK_SIZE);
-            if ($chunk === '' && !$stream->eof()) {
-                fclose($handle);
-                @unlink($tempFile);
-                throw new SnapGrabException('Failed to read from the remote stream.');
-            }
+            if ($chunk === '' || $chunk === false) {
+                if ($chunk === false || !$stream->eof()) {
+                    fclose($handle);
+                    @unlink($tempFile);
+                    throw new SnapGrabException('Failed to read from the remote stream.');
+                }
 
-            if ($chunk === false) {
-                fclose($handle);
-                @unlink($tempFile);
-                throw new SnapGrabException('Failed to read from the remote stream.');
-            }
-
-            if ($chunk === '') {
                 continue;
             }
 

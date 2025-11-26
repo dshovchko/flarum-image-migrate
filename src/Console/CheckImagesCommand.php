@@ -179,10 +179,17 @@ class CheckImagesCommand extends AbstractCommand
         $totalImages = count($externalImages);
         $this->info(sprintf('Migrating %d image(s) across %d post(s)...', $totalImages, $totalPosts));
 
+        $processedPosts = 0;
+
         foreach ($grouped as $postId => $images) {
             $post = CommentPost::find($postId);
             if (!$post) {
-                $this->error("Post #{$postId} no longer exists");
+                $this->error(sprintf(
+                    'Post #%d no longer exists. Migration aborted after processing %d of %d post(s).',
+                    $postId,
+                    $processedPosts,
+                    $totalPosts
+                ));
                 return 1;
             }
 
@@ -191,9 +198,16 @@ class CheckImagesCommand extends AbstractCommand
             try {
                 $this->migrator->migrate($post, $images);
             } catch (SnapGrabException $e) {
-                $this->error('Migration failed: '.$e->getMessage());
+                $this->error(sprintf(
+                    'Migration failed after processing %d of %d post(s): %s',
+                    $processedPosts,
+                    $totalPosts,
+                    $e->getMessage()
+                ));
                 return 1;
             }
+
+            $processedPosts++;
         }
 
         $this->info('Migration completed successfully.');

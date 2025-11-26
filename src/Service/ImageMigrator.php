@@ -127,10 +127,8 @@ class ImageMigrator
             return $baseUrl;
         }
 
-        $suffix = $postNumber !== null ? $postNumber : null;
-
-        return $suffix === null
+        return $postNumber === null
             ? sprintf('%s/d/%d', $baseUrl, $discussion->id)
-            : sprintf('%s/d/%d/%d', $baseUrl, $discussion->id, $suffix);
+            : sprintf('%s/d/%d/%d', $baseUrl, $discussion->id, $postNumber);
     }
 }
