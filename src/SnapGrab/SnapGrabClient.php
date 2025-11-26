@@ -150,7 +150,9 @@ class SnapGrabClient
             if (!in_array($response->getStatusCode(), [200, 201], true)) {
                 $message = sprintf('Upload failed with HTTP %s', $response->getStatusCode());
                 $this->logger->warning($message, ['endpoint' => $endpoint]);
-                throw new SnapGrabException($message.' - '.$response->getBody());
+                $responseBody = (string) $response->getBody();
+                $truncatedBody = strlen($responseBody) > 200 ? substr($responseBody, 0, 200).'...[truncated]' : $responseBody;
+                throw new SnapGrabException($message.' - '.$truncatedBody);
             }
 
             $payload = json_decode((string) $response->getBody(), true);

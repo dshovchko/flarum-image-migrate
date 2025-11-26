@@ -8,6 +8,16 @@ use Psr\Log\LoggerInterface;
 
 class RemoteImageDownloader
 {
+    private const CHUNK_SIZE = 8192;
+    private const MAX_FILE_BYTES = 20_971_520; // 20 MB safety limit
+    private const CONTENT_TYPE_EXTENSION_MAP = [
+        'image/webp' => 'webp',
+        'image/avif' => 'avif',
+        'image/png' => 'png',
+        'image/jpeg' => 'jpg',
+        'image/jpg' => 'jpg',
+    ];
+
     private Client $http;
 
     public function __construct(private readonly LoggerInterface $logger)
@@ -53,8 +63,38 @@ class RemoteImageDownloader
             throw new SnapGrabException('Unable to open temp file for writing.');
         }
 
+        $bytesWritten = 0;
         while (!$stream->eof()) {
-            fwrite($handle, $stream->read(8192));
+            $chunk = $stream->read(self::CHUNK_SIZE);
+            if ($chunk === '' && !$stream->eof()) {
+                fclose($handle);
+                @unlink($tempFile);
+                throw new SnapGrabException('Failed to read from the remote stream.');
+            }
+
+            if ($chunk === false) {
+                fclose($handle);
+                @unlink($tempFile);
+                throw new SnapGrabException('Failed to read from the remote stream.');
+            }
+
+            if ($chunk === '') {
+                continue;
+            }
+
+            $written = fwrite($handle, $chunk);
+            if ($written === false || $written !== strlen($chunk)) {
+                fclose($handle);
+                @unlink($tempFile);
+                throw new SnapGrabException('Failed to write downloaded bytes to disk.');
+            }
+
+            $bytesWritten += $written;
+            if ($bytesWritten > self::MAX_FILE_BYTES) {
+                fclose($handle);
+                @unlink($tempFile);
+                throw new SnapGrabException('Downloaded file exceeds the allowed size limit.');
+            }
         }
 
         fclose($handle);
@@ -75,13 +115,7 @@ class RemoteImageDownloader
         }
 
         if ($contentType) {
-            return match (strtolower($contentType)) {
-                'image/webp' => 'webp',
-                'image/avif' => 'avif',
-                'image/png' => 'png',
-                'image/jpeg', 'image/jpg' => 'jpg',
-                default => null,
-            };
+            return $this->mapContentTypeToExtension($contentType);
         }
 
         $finfo = finfo_open(FILEINFO_MIME_TYPE);
@@ -89,16 +123,21 @@ class RemoteImageDownloader
             $detected = finfo_file($finfo, $filePath);
             finfo_close($finfo);
             if ($detected) {
-                return match ($detected) {
-                    'image/webp' => 'webp',
-                    'image/avif' => 'avif',
-                    'image/png' => 'png',
-                    'image/jpeg' => 'jpg',
-                    default => null,
-                };
+                return $this->mapContentTypeToExtension($detected);
             }
         }
 
         return null;
+    }
+
+    private function mapContentTypeToExtension(?string $contentType): ?string
+    {
+        if ($contentType === null) {
+            return null;
+        }
+
+        $lower = strtolower(trim($contentType));
+
+        return self::CONTENT_TYPE_EXTENSION_MAP[$lower] ?? null;
     }
 }

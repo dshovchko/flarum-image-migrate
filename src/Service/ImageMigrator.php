@@ -31,7 +31,7 @@ class ImageMigrator
     }
 
     /**
-     * @param array<int, array{image_url:string, post_number?:int, discussion_id:int}> $images
+     * @param array<int, array{image_url:string, post_number?:int, discussion_id:int, post_id:int}> $images
      *
      * @throws SnapGrabException
      */
