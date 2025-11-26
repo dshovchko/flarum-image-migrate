@@ -106,21 +106,41 @@ class ImageMigrator
 
     private function replaceImageSrc(CommentPost $post, string $content, string $search, string $replacement): string
     {
-        $pattern = '/(<img[^>]*\s+src=["\"])'.preg_quote($search, '/').'(["\"][^>]*>)/i';
-        $count = 0;
-        $result = preg_replace_callback($pattern, function (array $matches) use ($replacement) {
-            return $matches[1].$replacement.$matches[2];
-        }, $content, 1, $count);
+        $encodedSearch = htmlspecialchars($search, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        $encodedReplacement = htmlspecialchars($replacement, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 
-        if ($result === null || $count === 0) {
-            throw new SnapGrabException(sprintf(
-                'Original image URL (%s) was not found inside an <img> tag in post #%d.',
-                $search,
-                $post->id ?? 0
-            ));
+        $patterns = [
+            [
+                '/(<img[^>]*\s+src=["\"])'.preg_quote($encodedSearch, '/').'(["\"][^>]*>)/i',
+                $encodedReplacement,
+            ],
+            [
+                '/(<img[^>]*\s+src=["\"])'.preg_quote($search, '/').'(["\"][^>]*>)/i',
+                $replacement,
+            ],
+        ];
+
+        foreach ($patterns as [$pattern, $replacementValue]) {
+            $count = 0;
+            $result = preg_replace_callback($pattern, function (array $matches) use ($replacementValue) {
+                return $matches[1].$replacementValue.$matches[2];
+            }, $content, 1, $count);
+
+            if ($result !== null && $count > 0) {
+                return $result;
+            }
         }
 
-        return $result;
+        $pos = strpos($content, $search);
+        if ($pos !== false) {
+            return substr($content, 0, $pos).$replacement.substr($content, $pos + strlen($search));
+        }
+
+        throw new SnapGrabException(sprintf(
+            'Original image URL (%s) was not found inside an <img> tag in post #%d.',
+            $search,
+            $post->id ?? 0
+        ));
     }
 
     private function buildSourceUrl(?Discussion $discussion, ?int $postNumber): string
