@@ -54,7 +54,7 @@ class ImageMigrator
 
                 $response = $this->client->upload($downloaded->path, $sourceUrl, $format, $options);
                 $newUrl = $response['url'];
-                $content = $this->replaceFirst($content, $image['image_url'], $newUrl);
+                $content = $this->replaceFirst($post, $content, $image['image_url'], $newUrl);
 
                 $changes[] = [
                     'original_url' => $image['image_url'],
@@ -103,12 +103,16 @@ class ImageMigrator
         };
     }
 
-    private function replaceFirst(string $content, string $search, string $replacement): string
+    private function replaceFirst(CommentPost $post, string $content, string $search, string $replacement): string
     {
         $pos = strpos($content, $search);
 
         if ($pos === false) {
-            throw new SnapGrabException('Original image URL was not found inside the post content.');
+            throw new SnapGrabException(sprintf(
+                'Original image URL (%s) was not found inside post #%d.',
+                $search,
+                $post->id ?? 0
+            ));
         }
 
         return substr($content, 0, $pos).$replacement.substr($content, $pos + strlen($search));

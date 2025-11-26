@@ -19,6 +19,8 @@ return [
 
             $table->index('discussion_id');
             $table->index('post_id');
+            $table->foreign('discussion_id')->references('id')->on('discussions')->onDelete('cascade');
+            $table->foreign('post_id')->references('id')->on('posts')->onDelete('cascade');
         });
     },
     'down' => function (Builder $schema) {

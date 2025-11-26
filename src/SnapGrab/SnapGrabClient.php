@@ -93,7 +93,16 @@ class SnapGrabClient
             throw new HealthCheckException('SnapGrab backend responded with HTTP '.$response->getStatusCode());
         }
 
-        $payload = json_decode((string) $response->getBody(), true);
+        try {
+            $payload = json_decode((string) $response->getBody(), true, 512, JSON_THROW_ON_ERROR);
+        } catch (JsonException $e) {
+            $this->logger->error('SnapGrab health check returned malformed JSON', [
+                'url' => $url,
+                'error' => $e->getMessage(),
+            ]);
+            throw new HealthCheckException('SnapGrab backend returned malformed JSON.', 0, $e);
+        }
+
         if (!is_array($payload) || Arr::get($payload, 'status') !== 'ok') {
             throw new HealthCheckException('SnapGrab backend reported non-ok status.');
         }

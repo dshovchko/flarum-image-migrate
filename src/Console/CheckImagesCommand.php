@@ -186,7 +186,7 @@ class CheckImagesCommand extends AbstractCommand
             $post = CommentPost::find($postId);
             if (!$post) {
                 $this->error(sprintf(
-                    'Post #%d no longer exists (attempt %d of %d). Migration stopped after completing %d post(s).',
+                    'Post #%d no longer exists (processing post %d of %d). Migration stopped after completing %d post(s).',
                     $postId,
                     $currentIndex,
                     $totalPosts,
