@@ -107,7 +107,7 @@ class SnapGrabClient
         $this->ensureConfigured();
 
         $endpoint = $this->getBaseUrl().'/upload';
-        $fileResource = fopen($filePath, 'r');
+        $fileResource = fopen($filePath, 'rb');
         if ($fileResource === false) {
             throw new SnapGrabException('Unable to open downloaded file for upload.');
         }

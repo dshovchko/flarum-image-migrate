@@ -105,18 +105,13 @@ class ImageMigrator
 
     private function replaceFirst(string $content, string $search, string $replacement): string
     {
-        $pattern = '/'.preg_quote($search, '/').'/';
-        $result = preg_replace($pattern, $replacement, $content, 1, $count);
+        $pos = strpos($content, $search);
 
-        if ($result === null) {
-            throw new SnapGrabException('Failed to replace image URL in post content.');
-        }
-
-        if ($count === 0) {
+        if ($pos === false) {
             throw new SnapGrabException('Original image URL was not found inside the post content.');
         }
 
-        return $result;
+        return substr($content, 0, $pos).$replacement.substr($content, $pos + strlen($search));
     }
 
     private function buildSourceUrl(?Discussion $discussion, ?int $postNumber): string

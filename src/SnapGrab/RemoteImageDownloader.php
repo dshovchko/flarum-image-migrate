@@ -119,6 +119,8 @@ class RemoteImageDownloader
             if ($detected) {
                 return $this->mapContentTypeToExtension($detected);
             }
+        } else {
+            $this->logger->warning('Unable to create finfo resource to detect downloaded MIME type.', ['url' => $url]);
         }
 
         return null;
