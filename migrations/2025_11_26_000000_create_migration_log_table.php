@@ -15,7 +15,7 @@ return [
             $table->unsignedInteger('post_id');
             $table->text('original_url');
             $table->text('new_url');
-            $table->timestamp('created_at')->useCurrent();
+            $table->timestamp('created_at')->nullable();
 
             $table->index('discussion_id');
             $table->index('post_id');

@@ -13,6 +13,7 @@ use Flarum\Post\CommentPost;
 
 class ImageMigrator
 {
+    // Slight upscale keeps output dimensions stable after backend processing.
     private const SCALE_FACTOR = 1.01;
     private const QUALITY = [
         'webp' => 75,
