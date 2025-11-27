@@ -130,6 +130,17 @@ Domains in the allowed origins list are considered "internal" and won't be flagg
 - Flarum ^1.0
 - PHP 7.4+
 
+## Release Checklist
+
+When tagging a new version:
+
+1. Run `cd js && npm ci && npm run build` to regenerate `js/dist/admin.js`.
+2. Commit the updated `js/dist` assets together with any code changes (do **not** rely on production servers having Node.js available).
+3. Update `CHANGELOG.md` with the new version and summary.
+4. Tag the release (`git tag -a vX.Y.Z -m "vX.Y.Z"`) and push the tag to origin.
+
+This ensures Packagist builds include the already-tested admin bundle.
+
 ## Future Features
 
 - Automatic retries/backoff for flaky external hosts

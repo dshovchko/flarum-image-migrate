@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.1.1] - 2025-11-27
+### Fixed
+- Added the compiled `js/dist/admin.js` bundle to the package so that the admin panel loads without requiring local asset builds on production servers.
+- Documented the release checklist (build admin assets, create tag) to avoid missing files in future releases.
+
 ## [1.1.0] - 2025-11-26
 ### Added
 - New migration mode powered by the existing `image-migrate:check` command with the `--fix` flag. External images are downloaded, converted according to the configured presets, uploaded to the configured backend, and the post contents are rewritten automatically.
