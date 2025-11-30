@@ -61,7 +61,7 @@ php flarum image-migrate:check --all
 php flarum image-migrate:check --all --fix
 
 # Run the scan and migrate matching images immediately with scale
-php flarum image-migrate:check --all --fix --scaleFactor=1.5
+php flarum image-migrate:check --all --fix --scale=1.5
 
 # Email the report
 php flarum image-migrate:check --all --mailto=admin@example.com

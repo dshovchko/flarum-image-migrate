@@ -2,7 +2,7 @@
 
 ## [1.1.2] - 2025-11-30
 ### Changed
-- Added --scaleFactor option to CLI interface, including input validation for numeric/positive values.
+- Added --scale option to the CLI interface (with numeric/positive validation) so migrations can tweak backend scaling on demand.
 - Added TypeScript tooling to the admin bundle (new `tsconfig.json` plus the `flarum-tsconfig` dev dependency) so future TypeScript migration work has the required infrastructure.
 
 ## [1.1.1] - 2025-11-27

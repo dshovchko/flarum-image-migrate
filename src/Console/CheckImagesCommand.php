@@ -41,7 +41,7 @@ class CheckImagesCommand extends AbstractCommand
              ->addOption('post', null, InputOption::VALUE_REQUIRED, 'Process only comment post with the specified ID')
              ->addOption('mailto', null, InputOption::VALUE_REQUIRED, 'Send the checking log to the specified email')
              ->addOption('fix', null, InputOption::VALUE_NONE, 'Migrate external images to SnapGrab storage')
-             ->addOption('scaleFactor', null, InputOption::VALUE_REQUIRED, 'Scale factor to use when migrating images (default 1.01)');
+             ->addOption('scale', null, InputOption::VALUE_REQUIRED, 'Scale factor to use when migrating images (default 1.01)');
     }
 
     protected function fire()
@@ -51,7 +51,7 @@ class CheckImagesCommand extends AbstractCommand
         $all = $this->input->getOption('all');
         $mailto = $this->input->getOption('mailto');
         $fix = $this->input->getOption('fix');
-        $scaleFactorOption = $this->input->getOption('scaleFactor');
+        $scaleOption = $this->input->getOption('scale');
 
         if (!$postId && !$discussionId && !$all) {
             $this->error('Please specify one of: --discussion=<id>, --post=<id>, or --all');
@@ -75,13 +75,13 @@ class CheckImagesCommand extends AbstractCommand
 
         if ($fix) {
             $scaleFactor = null;
-            if ($scaleFactorOption !== null) {
-                if (!is_numeric($scaleFactorOption)) {
+            if ($scaleOption !== null) {
+                if (!is_numeric($scaleOption)) {
                     $this->error('Scale factor must be a numeric value.');
                     return 1;
                 }
 
-                $scaleFactor = (float) $scaleFactorOption;
+                $scaleFactor = (float) $scaleOption;
 
                 if ($scaleFactor <= 0) {
                     $this->error('Scale factor must be a positive number.');
