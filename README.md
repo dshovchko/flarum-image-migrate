@@ -60,6 +60,9 @@ php flarum image-migrate:check --all
 # Run the scan and migrate matching images immediately
 php flarum image-migrate:check --all --fix
 
+# Run the scan and migrate matching images immediately with scale
+php flarum image-migrate:check --all --fix --scaleFactor=1.5
+
 # Email the report
 php flarum image-migrate:check --all --mailto=admin@example.com
 
@@ -139,7 +142,17 @@ When tagging a new version:
 3. Update `CHANGELOG.md` with the new version and summary.
 4. Tag the release (`git tag -a vX.Y.Z -m "vX.Y.Z"`) and push the tag to origin.
 
-This ensures Packagist builds include the already-tested admin bundle.
+This ensures Packagist builds include the already-tested TypeScript admin bundle.
+
+## Development
+
+The admin UI is authored in TypeScript and lives in `js/src/admin` (entry point `js/admin.ts`). To work on it locally:
+
+1. `cd js`
+2. `npm ci`
+3. `npm run dev` for a watch build or `npm run build` for a production bundle
+
+Webpack reads `tsconfig.json`, so updating the TypeScript sources automatically recompiles the `js/dist/admin.js` asset that ships with the extension.
 
 ## Future Features
 
