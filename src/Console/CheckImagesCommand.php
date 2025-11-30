@@ -74,10 +74,19 @@ class CheckImagesCommand extends AbstractCommand
         }
 
         if ($fix) {
-            $scaleFactor = $scaleFactorOption !== null ? (float) $scaleFactorOption : null;
-            if ($scaleFactor !== null && $scaleFactor <= 0) {
-                $this->error('Scale factor must be a positive number.');
-                return 1;
+            $scaleFactor = null;
+            if ($scaleFactorOption !== null) {
+                if (!is_numeric($scaleFactorOption)) {
+                    $this->error('Scale factor must be a numeric value.');
+                    return 1;
+                }
+
+                $scaleFactor = (float) $scaleFactorOption;
+
+                if ($scaleFactor <= 0) {
+                    $this->error('Scale factor must be a positive number.');
+                    return 1;
+                }
             }
             $this->migrator->setScaleFactor($scaleFactor);
             return $this->runFix($externalImages);
