@@ -31,10 +31,8 @@ class ImageMigrator
     public function __construct(
         private readonly SnapGrabClient $client,
         private readonly RemoteImageDownloader $downloader,
-        private readonly Config $config,
-        ?float $scaleFactor = null
+        private readonly Config $config
     ) {
-        $this->scaleFactor = $scaleFactor;
     }
 
     /**
@@ -89,7 +87,8 @@ class ImageMigrator
     }
 
     /**
-     * Allow console commands to override the scale factor at runtime without rebuilding the service.
+     * Override the default scale factor (null falls back to self::SCALE_FACTOR).
+     * Meant for console commands/options that tweak runtime behavior without rebuilding the service.
      */
     public function setScaleFactor(?float $scaleFactor): void
     {
