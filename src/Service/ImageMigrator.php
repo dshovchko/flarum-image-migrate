@@ -27,6 +27,13 @@ class ImageMigrator
         'webp' => 6,
         'avif' => 8,
     ];
+    private const EXTENSION_MIME_MAP = [
+        'jpg' => 'image/jpeg',
+        'jpeg' => 'image/jpeg',
+        'png' => 'image/png',
+        'webp' => 'image/webp',
+        'avif' => 'image/avif',
+    ];
 
     public function __construct(
         private readonly SnapGrabClient $client,
@@ -55,9 +62,11 @@ class ImageMigrator
             try {
                 $format = $this->determineTargetFormat($downloaded->extension);
                 $options = $this->buildOptions();
-                $sourceUrl = $this->buildSourceUrl($post->discussion, $image['post_number'] ?? null);
+                $sourceUrl = $this->buildSourceUrl($image['image_url'], $post->discussion, $image['post_number'] ?? null);
+                $filename = $this->buildUploadFilename($image['image_url'], $downloaded->extension);
+                $mime = $this->resolveMime($downloaded->mime, $downloaded->extension);
 
-                $response = $this->client->upload($downloaded->path, $sourceUrl, $format, $options);
+                $response = $this->client->upload($downloaded->path, $sourceUrl, $format, $options, $filename, $mime);
                 $newUrl = $response['url'];
                 $content = $this->replaceImageSrc($post, $content, $image['image_url'], $newUrl);
 
@@ -156,8 +165,12 @@ class ImageMigrator
         ));
     }
 
-    private function buildSourceUrl(?Discussion $discussion, ?int $postNumber): string
+    private function buildSourceUrl(string $imageUrl, ?Discussion $discussion, ?int $postNumber): string
     {
+        if (filter_var($imageUrl, FILTER_VALIDATE_URL)) {
+            return $imageUrl;
+        }
+
         $baseUrl = rtrim((string) $this->config->url(), '/');
 
         if (!$discussion) {
@@ -167,5 +180,42 @@ class ImageMigrator
         return $postNumber === null
             ? sprintf('%s/d/%d', $baseUrl, $discussion->id)
             : sprintf('%s/d/%d/%d', $baseUrl, $discussion->id, $postNumber);
+    }
+
+    private function buildUploadFilename(string $imageUrl, ?string $downloadedExtension): string
+    {
+        $path = parse_url($imageUrl, PHP_URL_PATH);
+        $basename = $path ? basename($path) : null;
+        $extension = $downloadedExtension ? strtolower($downloadedExtension) : null;
+
+        if ($basename) {
+            $existingExt = pathinfo($basename, PATHINFO_EXTENSION);
+            if ($existingExt) {
+                return $basename;
+            }
+
+            if ($extension) {
+                return $basename.'.'.$extension;
+            }
+
+            return $basename.'.bin';
+        }
+
+        $suffix = $extension ?? 'bin';
+
+        return 'image.'.$suffix;
+    }
+
+    private function resolveMime(?string $detectedMime, ?string $extension): ?string
+    {
+        if ($detectedMime) {
+            return $detectedMime;
+        }
+
+        if ($extension) {
+            return self::EXTENSION_MIME_MAP[strtolower($extension)] ?? null;
+        }
+
+        return null;
     }
 }

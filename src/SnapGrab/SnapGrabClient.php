@@ -111,7 +111,7 @@ class SnapGrabClient
     /**
      * @throws SnapGrabException
      */
-    public function upload(string $filePath, string $sourceUrl, string $format, array $options): array
+    public function upload(string $filePath, string $sourceUrl, string $format, array $options, ?string $filename = null, ?string $mime = null): array
     {
         $this->ensureConfigured();
 
@@ -128,7 +128,7 @@ class SnapGrabClient
                 [
                     'name' => 'file',
                     'contents' => $fileResource,
-                    'filename' => basename($filePath),
+                    'filename' => $filename ?? basename($filePath),
                 ],
                 [
                     'name' => 'sourceUrl',
@@ -147,6 +147,10 @@ class SnapGrabClient
                     'contents' => $optionsJson,
                 ],
             ];
+
+            if ($mime) {
+                $body[0]['headers'] = ['Content-Type' => $mime];
+            }
 
             $response = $this->http->request('POST', $endpoint, [
                 'headers' => [
