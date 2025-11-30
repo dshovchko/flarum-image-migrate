@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.2] - 2025-11-30
+### Changed
+- Added --scale option to the CLI interface (with numeric/positive validation) so migrations can tweak backend scaling on demand.
+- Added TypeScript tooling to the admin bundle (new `tsconfig.json` plus the `flarum-tsconfig` dev dependency) so future TypeScript migration work has the required infrastructure.
+
+### Fixed
+- SnapGrab uploads now report the original image URL as the `source` and preserve the original filename/MIME type, eliminating `.bin` artifacts and matching manual uploads.
+
 ## [1.1.1] - 2025-11-27
 ### Fixed
 - Added the compiled `js/dist/admin.js` bundle to the package so that the admin panel loads without requiring local asset builds on production servers.

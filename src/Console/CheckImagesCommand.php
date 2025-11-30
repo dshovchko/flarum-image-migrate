@@ -19,8 +19,12 @@ class CheckImagesCommand extends AbstractCommand
     protected $migrator;
     protected $snapGrabClient;
 
-    public function __construct(ImageChecker $checker, ReportMailer $mailer, ImageMigrator $migrator, SnapGrabClient $snapGrabClient)
-    {
+    public function __construct(
+        ImageChecker $checker,
+        ReportMailer $mailer,
+        ImageMigrator $migrator,
+        SnapGrabClient $snapGrabClient
+    ) {
         parent::__construct();
         $this->checker = $checker;
         $this->mailer = $mailer;
@@ -36,7 +40,8 @@ class CheckImagesCommand extends AbstractCommand
              ->addOption('all', null, InputOption::VALUE_NONE, 'Process all discussions')
              ->addOption('post', null, InputOption::VALUE_REQUIRED, 'Process only comment post with the specified ID')
              ->addOption('mailto', null, InputOption::VALUE_REQUIRED, 'Send the checking log to the specified email')
-             ->addOption('fix', null, InputOption::VALUE_NONE, 'Migrate external images to SnapGrab storage');
+             ->addOption('fix', null, InputOption::VALUE_NONE, 'Migrate external images to SnapGrab storage')
+             ->addOption('scale', null, InputOption::VALUE_REQUIRED, 'Scale factor to use when migrating images (default 1.01)');
     }
 
     protected function fire()
@@ -46,6 +51,7 @@ class CheckImagesCommand extends AbstractCommand
         $all = $this->input->getOption('all');
         $mailto = $this->input->getOption('mailto');
         $fix = $this->input->getOption('fix');
+        $scaleOption = $this->input->getOption('scale');
 
         if (!$postId && !$discussionId && !$all) {
             $this->error('Please specify one of: --discussion=<id>, --post=<id>, or --all');
@@ -68,7 +74,22 @@ class CheckImagesCommand extends AbstractCommand
         }
 
         if ($fix) {
-            return $this->runFix($externalImages);
+            $scaleFactor = null;
+            if ($scaleOption !== null) {
+                if (!is_numeric($scaleOption)) {
+                    $this->error('Scale factor must be a numeric value.');
+                    return 1;
+                }
+
+                $scaleFactor = (float) $scaleOption;
+
+                if ($scaleFactor <= 0) {
+                    $this->error('Scale factor must be a positive number.');
+                    return 1;
+                }
+            }
+
+            return $this->runFix($externalImages, $scaleFactor);
         }
 
         $this->displayResults($externalImages, $mailto);
@@ -155,67 +176,73 @@ class CheckImagesCommand extends AbstractCommand
         }
     }
 
-    protected function runFix(array $externalImages): int
+    protected function runFix(array $externalImages, ?float $scaleFactor = null): int
     {
         if (empty($externalImages)) {
             $this->info('No external images found. Nothing to migrate.');
             return 0;
         }
 
+        $this->migrator->setScaleFactor($scaleFactor);
+
         try {
-            $this->snapGrabClient->ensureConfigured();
-            $this->snapGrabClient->healthCheck();
-        } catch (SnapGrabException $e) {
-            $this->error('Health check failed: '.$e->getMessage());
-            return 1;
-        }
-
-        $grouped = [];
-        foreach ($externalImages as $image) {
-            $grouped[$image['post_id']][] = $image;
-        }
-
-        $totalPosts = count($grouped);
-        $totalImages = count($externalImages);
-        $this->info(sprintf('Migrating %d image(s) across %d post(s)...', $totalImages, $totalPosts));
-
-        $processedPosts = 0;
-
-        foreach ($grouped as $postId => $images) {
-            $currentIndex = $processedPosts + 1;
-            $post = CommentPost::find($postId);
-            if (!$post) {
-                $this->error(sprintf(
-                    'Post #%d no longer exists (processing post %d of %d). Migration stopped after completing %d post(s).',
-                    $postId,
-                    $currentIndex,
-                    $totalPosts,
-                    $processedPosts
-                ));
-                return 1;
-            }
-
-            $this->info(sprintf('  • Post #%d (%d image%s)', $postId, count($images), count($images) === 1 ? '' : 's'));
-
             try {
-                $this->migrator->migrate($post, $images);
+                $this->snapGrabClient->ensureConfigured();
+                $this->snapGrabClient->healthCheck();
             } catch (SnapGrabException $e) {
-                $this->error(sprintf(
-                    'Migration failed while processing post #%d (%d of %d). Completed %d post(s) before the error. %s',
-                    $postId,
-                    $currentIndex,
-                    $totalPosts,
-                    $processedPosts,
-                    $e->getMessage()
-                ));
+                $this->error('Health check failed: '.$e->getMessage());
                 return 1;
             }
 
-            $processedPosts++;
+            $grouped = [];
+            foreach ($externalImages as $image) {
+                $grouped[$image['post_id']][] = $image;
+            }
+
+            $totalPosts = count($grouped);
+            $totalImages = count($externalImages);
+            $this->info(sprintf('Migrating %d image(s) across %d post(s)...', $totalImages, $totalPosts));
+
+            $processedPosts = 0;
+
+            foreach ($grouped as $postId => $images) {
+                $currentIndex = $processedPosts + 1;
+                $post = CommentPost::find($postId);
+                if (!$post) {
+                    $this->error(sprintf(
+                        'Post #%d no longer exists (processing post %d of %d). Migration stopped after completing %d post(s).',
+                        $postId,
+                        $currentIndex,
+                        $totalPosts,
+                        $processedPosts
+                    ));
+                    return 1;
+                }
+
+                $this->info(sprintf('  • Post #%d (%d image%s)', $postId, count($images), count($images) === 1 ? '' : 's'));
+
+                try {
+                    $this->migrator->migrate($post, $images);
+                } catch (SnapGrabException $e) {
+                    $this->error(sprintf(
+                        'Migration failed while processing post #%d (%d of %d). Completed %d post(s) before the error. %s',
+                        $postId,
+                        $currentIndex,
+                        $totalPosts,
+                        $processedPosts,
+                        $e->getMessage()
+                    ));
+                    return 1;
+                }
+
+                $processedPosts++;
+            }
+
+            $this->info('Migration completed successfully.');
+
+            return 0;
+        } finally {
+            $this->migrator->setScaleFactor(null);
         }
-
-        $this->info('Migration completed successfully.');
-
-        return 0;
     }
 }
