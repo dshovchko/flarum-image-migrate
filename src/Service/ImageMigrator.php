@@ -37,7 +37,6 @@ class ImageMigrator
         $this->scaleFactor = $scaleFactor;
     }
 
-
     /**
      * @param array<int, array{image_url:string, post_number?:int, discussion_id:int, post_id:int}> $images
      *
@@ -87,6 +86,14 @@ class ImageMigrator
                 'created_at' => Carbon::now(),
             ]);
         }
+    }
+
+    /**
+     * Allow console commands to override the scale factor at runtime without rebuilding the service.
+     */
+    public function setScaleFactor(?float $scaleFactor): void
+    {
+        $this->scaleFactor = $scaleFactor;
     }
 
     private function buildOptions(): array

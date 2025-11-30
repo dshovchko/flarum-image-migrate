@@ -83,7 +83,7 @@ class CheckImagesCommand extends AbstractCommand
 
         if ($fix) {
             $scaleFactor = $scaleFactorOption !== null ? (float) $scaleFactorOption : null;
-            $this->migrator = new ImageMigrator($this->snapGrabClient, $this->downloader, $this->config, $scaleFactor);
+            $this->migrator->setScaleFactor($scaleFactor);
             return $this->runFix($externalImages);
         }
 
