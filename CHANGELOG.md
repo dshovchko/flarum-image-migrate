@@ -2,6 +2,7 @@
 
 ## [1.1.2] - 2025-11-30
 ### Changed
+- Added --scaleFactor option to CLI interface
 - Rewrote the admin panel bundle in TypeScript: the entry point is now `js/admin.ts`, sources live under `js/src/admin/*.ts`, and builds are driven by `tsconfig.json`. This aligns the extension with the other packages in the monorepo, unlocks type hints, and makes future contributions safer.
 
 ## [1.1.1] - 2025-11-27
