@@ -7,8 +7,10 @@ use Dshovchko\ImageMigrate\Service\ImageMigrator;
 use Dshovchko\ImageMigrate\Service\ReportMailer;
 use Dshovchko\ImageMigrate\SnapGrab\SnapGrabClient;
 use Dshovchko\ImageMigrate\SnapGrab\SnapGrabException;
+use Dshovchko\ImageMigrate\SnapGrab\RemoteImageDownloader;
 use Flarum\Console\AbstractCommand;
 use Flarum\Discussion\Discussion;
+use Flarum\Foundation\Config;
 use Flarum\Post\CommentPost;
 use Symfony\Component\Console\Input\InputOption;
 
@@ -18,14 +20,24 @@ class CheckImagesCommand extends AbstractCommand
     protected $mailer;
     protected $migrator;
     protected $snapGrabClient;
+    protected $downloader;
+    protected $config;
 
-    public function __construct(ImageChecker $checker, ReportMailer $mailer, ImageMigrator $migrator, SnapGrabClient $snapGrabClient)
-    {
+    public function __construct(
+        ImageChecker $checker,
+        ReportMailer $mailer,
+        ImageMigrator $migrator,
+        SnapGrabClient $snapGrabClient,
+        RemoteImageDownloader $downloader,
+        Config $config
+    ) {
         parent::__construct();
         $this->checker = $checker;
         $this->mailer = $mailer;
         $this->migrator = $migrator;
         $this->snapGrabClient = $snapGrabClient;
+        $this->downloader = $downloader;
+        $this->config = $config;
     }
 
     protected function configure()
@@ -36,7 +48,8 @@ class CheckImagesCommand extends AbstractCommand
              ->addOption('all', null, InputOption::VALUE_NONE, 'Process all discussions')
              ->addOption('post', null, InputOption::VALUE_REQUIRED, 'Process only comment post with the specified ID')
              ->addOption('mailto', null, InputOption::VALUE_REQUIRED, 'Send the checking log to the specified email')
-             ->addOption('fix', null, InputOption::VALUE_NONE, 'Migrate external images to SnapGrab storage');
+             ->addOption('fix', null, InputOption::VALUE_NONE, 'Migrate external images to SnapGrab storage')
+             ->addOption('scaleFactor', null, InputOption::VALUE_REQUIRED, 'Scale factor to use when migrating images (default 1.01)');
     }
 
     protected function fire()
@@ -46,6 +59,7 @@ class CheckImagesCommand extends AbstractCommand
         $all = $this->input->getOption('all');
         $mailto = $this->input->getOption('mailto');
         $fix = $this->input->getOption('fix');
+        $scaleFactorOption = $this->input->getOption('scaleFactor');
 
         if (!$postId && !$discussionId && !$all) {
             $this->error('Please specify one of: --discussion=<id>, --post=<id>, or --all');
@@ -68,6 +82,8 @@ class CheckImagesCommand extends AbstractCommand
         }
 
         if ($fix) {
+            $scaleFactor = $scaleFactorOption !== null ? (float) $scaleFactorOption : null;
+            $this->migrator = new ImageMigrator($this->snapGrabClient, $this->downloader, $this->config, $scaleFactor);
             return $this->runFix($externalImages);
         }
 

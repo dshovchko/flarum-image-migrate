@@ -15,6 +15,10 @@ class ImageMigrator
 {
     // Slight upscale keeps output dimensions stable after backend processing.
     private const SCALE_FACTOR = 1.01;
+    /**
+     * Optional custom scale factor (null = use default).
+     */
+    private ?float $scaleFactor = null;
     private const QUALITY = [
         'webp' => 75,
         'avif' => 50,
@@ -27,9 +31,12 @@ class ImageMigrator
     public function __construct(
         private readonly SnapGrabClient $client,
         private readonly RemoteImageDownloader $downloader,
-        private readonly Config $config
+        private readonly Config $config,
+        ?float $scaleFactor = null
     ) {
+        $this->scaleFactor = $scaleFactor;
     }
+
 
     /**
      * @param array<int, array{image_url:string, post_number?:int, discussion_id:int, post_id:int}> $images
@@ -86,7 +93,7 @@ class ImageMigrator
     {
         return [
             'lossless' => false,
-            'scaleFactor' => self::SCALE_FACTOR,
+            'scaleFactor' => $this->scaleFactor ?? self::SCALE_FACTOR,
             'quality' => self::QUALITY,
             'effort' => self::EFFORT,
         ];
