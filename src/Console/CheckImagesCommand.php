@@ -7,10 +7,8 @@ use Dshovchko\ImageMigrate\Service\ImageMigrator;
 use Dshovchko\ImageMigrate\Service\ReportMailer;
 use Dshovchko\ImageMigrate\SnapGrab\SnapGrabClient;
 use Dshovchko\ImageMigrate\SnapGrab\SnapGrabException;
-use Dshovchko\ImageMigrate\SnapGrab\RemoteImageDownloader;
 use Flarum\Console\AbstractCommand;
 use Flarum\Discussion\Discussion;
-use Flarum\Foundation\Config;
 use Flarum\Post\CommentPost;
 use Symfony\Component\Console\Input\InputOption;
 
@@ -20,24 +18,18 @@ class CheckImagesCommand extends AbstractCommand
     protected $mailer;
     protected $migrator;
     protected $snapGrabClient;
-    protected $downloader;
-    protected $config;
 
     public function __construct(
         ImageChecker $checker,
         ReportMailer $mailer,
         ImageMigrator $migrator,
-        SnapGrabClient $snapGrabClient,
-        RemoteImageDownloader $downloader,
-        Config $config
+        SnapGrabClient $snapGrabClient
     ) {
         parent::__construct();
         $this->checker = $checker;
         $this->mailer = $mailer;
         $this->migrator = $migrator;
         $this->snapGrabClient = $snapGrabClient;
-        $this->downloader = $downloader;
-        $this->config = $config;
     }
 
     protected function configure()

@@ -6,8 +6,6 @@ use Dshovchko\ImageMigrate\Service\ImageChecker;
 use Dshovchko\ImageMigrate\Service\ImageMigrator;
 use Dshovchko\ImageMigrate\Service\ReportMailer;
 use Dshovchko\ImageMigrate\SnapGrab\SnapGrabClient;
-use Dshovchko\ImageMigrate\SnapGrab\RemoteImageDownloader;
-use Flarum\Foundation\Config;
 use Flarum\Settings\SettingsRepositoryInterface;
 use Illuminate\Console\Scheduling\Event;
 
@@ -20,11 +18,9 @@ class ScheduledCheckImagesCommand extends CheckImagesCommand
         ReportMailer $mailer,
         ImageMigrator $migrator,
         SnapGrabClient $snapGrabClient,
-        RemoteImageDownloader $downloader,
-        Config $config,
         SettingsRepositoryInterface $settings
     ) {
-        parent::__construct($checker, $mailer, $migrator, $snapGrabClient, $downloader, $config);
+        parent::__construct($checker, $mailer, $migrator, $snapGrabClient);
         $this->settings = $settings;
     }
 
