@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.1.3] - 2025-12-01
+### Fixed
+- Posts are now re-parsed through the Flarum formatter after each migration so formatter-based extensions can immediately apply their transformations (e.g., adding width/height attributes) to the newly rewritten images.
+
 ## [1.1.2] - 2025-11-30
 ### Changed
 - Added --scale option to the CLI interface (with numeric/positive validation) so migrations can tweak backend scaling on demand.

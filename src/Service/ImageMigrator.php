@@ -80,7 +80,7 @@ class ImageMigrator
         }
 
         if ($content !== $post->content) {
-            $post->content = $content;
+            $post->setAttribute('content', $content);
             $post->save();
         }
 
