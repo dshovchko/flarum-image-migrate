@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0] - 2025-12-07
+### Added
+- Migrations now stop when the SnapGrab backend reports a duplicate upload (HTTP 208) and surface both the original external URL and the already-hosted optimized asset so moderators can reconcile the post manually.
+
+### Fixed
+- Hardened upload response parsing to emit actionable errors when the backend returns malformed JSON.
+
 ## [1.1.3] - 2025-12-01
 ### Fixed
 - Posts are now re-parsed through the Flarum formatter after each migration so formatter-based extensions can immediately apply their transformations (e.g., adding width/height attributes) to the newly rewritten images.

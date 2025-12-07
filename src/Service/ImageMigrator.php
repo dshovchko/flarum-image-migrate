@@ -4,6 +4,7 @@ namespace Dshovchko\ImageMigrate\Service;
 
 use Carbon\Carbon;
 use Dshovchko\ImageMigrate\Model\MigrationLog;
+use Dshovchko\ImageMigrate\SnapGrab\DuplicateUploadException;
 use Dshovchko\ImageMigrate\SnapGrab\RemoteImageDownloader;
 use Dshovchko\ImageMigrate\SnapGrab\SnapGrabClient;
 use Dshovchko\ImageMigrate\SnapGrab\SnapGrabException;
@@ -74,6 +75,13 @@ class ImageMigrator
                     'original_url' => $image['image_url'],
                     'new_url' => $newUrl,
                 ];
+            } catch (DuplicateUploadException $duplicate) {
+                throw new DuplicateUploadException(
+                    $duplicate->getOptimizedUrl(),
+                    $duplicate->getOptimizedKey(),
+                    $image['image_url'],
+                    $duplicate
+                );
             } finally {
                 @unlink($downloaded->path);
             }

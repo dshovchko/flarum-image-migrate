@@ -160,16 +160,30 @@ class SnapGrabClient
                 'multipart' => $body,
             ]);
 
-            if (!in_array($response->getStatusCode(), [200, 201], true)) {
-                $message = sprintf('Upload failed with HTTP %s', $response->getStatusCode());
+            $statusCode = $response->getStatusCode();
+            $responseBody = (string) $response->getBody();
+
+            if ($statusCode === 208) {
+                $payload = $this->decodeUploadResponse($responseBody, $endpoint);
+                $optimizedUrl = $payload['url'] ?? null;
+
+                if (!$optimizedUrl) {
+                    throw new SnapGrabException('Duplicate upload response is missing the optimized URL.');
+                }
+
+                throw new DuplicateUploadException($optimizedUrl, $payload['key'] ?? null);
+            }
+
+            if (!in_array($statusCode, [200, 201], true)) {
+                $message = sprintf('Upload failed with HTTP %s', $statusCode);
                 $this->logger->warning($message, ['endpoint' => $endpoint]);
-                $responseBody = (string) $response->getBody();
                 $truncatedBody = strlen($responseBody) > 200 ? substr($responseBody, 0, 200).'...[truncated]' : $responseBody;
                 throw new SnapGrabException($message.' - '.$truncatedBody);
             }
 
-            $payload = json_decode((string) $response->getBody(), true);
-            if (!is_array($payload) || !isset($payload['url'])) {
+            $payload = $this->decodeUploadResponse($responseBody, $endpoint);
+
+            if (!isset($payload['url'])) {
                 throw new SnapGrabException('Upload response is invalid.');
             }
 
@@ -184,5 +198,24 @@ class SnapGrabClient
                 fclose($fileResource);
             }
         }
+    }
+
+    private function decodeUploadResponse(string $body, string $endpoint): array
+    {
+        try {
+            $payload = json_decode($body, true, 512, JSON_THROW_ON_ERROR);
+        } catch (JsonException $e) {
+            $this->logger->error('SnapGrab upload returned malformed JSON', [
+                'endpoint' => $endpoint,
+                'error' => $e->getMessage(),
+            ]);
+            throw new SnapGrabException('Upload response is invalid.', 0, $e);
+        }
+
+        if (!is_array($payload)) {
+            throw new SnapGrabException('Upload response is invalid.');
+        }
+
+        return $payload;
     }
 }

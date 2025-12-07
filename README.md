@@ -85,6 +85,8 @@ When `--fix` is present, the command will:
 
 The command aborts on the first failed upload so that no discussion is partially migrated. Consider running without `--fix` first to review the report, then re-run with `--fix` for the same filters.
 
+> 🔁 If the SnapGrab backend reports a duplicate upload (HTTP 208), the migration stops immediately and the CLI prints both the original external URL and the already-hosted optimized asset so you can reconcile the post manually. No changes are written to the post in that scenario.
+
 ### Email Reports
 
 Reports include:
