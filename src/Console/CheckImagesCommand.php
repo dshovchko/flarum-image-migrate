@@ -5,6 +5,7 @@ namespace Dshovchko\ImageMigrate\Console;
 use Dshovchko\ImageMigrate\Service\ImageChecker;
 use Dshovchko\ImageMigrate\Service\ImageMigrator;
 use Dshovchko\ImageMigrate\Service\ReportMailer;
+use Dshovchko\ImageMigrate\SnapGrab\DuplicateUploadException;
 use Dshovchko\ImageMigrate\SnapGrab\SnapGrabClient;
 use Dshovchko\ImageMigrate\SnapGrab\SnapGrabException;
 use Flarum\Console\AbstractCommand;
@@ -223,6 +224,18 @@ class CheckImagesCommand extends AbstractCommand
 
                 try {
                     $this->migrator->migrate($post, $images);
+                } catch (DuplicateUploadException $duplicate) {
+                    $this->error(sprintf(
+                        "Migration stopped while processing post #%d (%d of %d).".PHP_EOL.
+                        "Original image: %s".PHP_EOL.
+                        "Optimized version already stored: %s",
+                        $postId,
+                        $currentIndex,
+                        $totalPosts,
+                        $duplicate->getOriginalUrl() ?? 'unknown',
+                        $duplicate->getOptimizedUrl()
+                    ));
+                    return 1;
                 } catch (SnapGrabException $e) {
                     $this->error(sprintf(
                         'Migration failed while processing post #%d (%d of %d). Completed %d post(s) before the error. %s',
